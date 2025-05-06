@@ -1,0 +1,4 @@
+xlsxwriter
+matplotlib
+adjustText
+fpdf
