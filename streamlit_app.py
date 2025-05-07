@@ -20,9 +20,18 @@ if uploaded_file:
         st.subheader("Raw Data Preview")
         st.write(data.head())
 
-        # Data Cleaning and Calculation
-        data = data.dropna(subset=['Actual @AOPNet Trade Sales', 'Actual @AOPQuantity sold'])
-        data = data[data['Actual @AOPQuantity sold'] > 0]
+                # Data Cleaning and Calculation
+        data.columns = data.columns.str.strip()
+        
+        # Check for required columns
+        required_columns = ['Actual @AOPNet Trade Sales', 'Actual @AOPQuantity sold']
+        if all(col in data.columns for col in required_columns):
+            # Data Cleaning and Calculation
+            data = data.dropna(subset=required_columns)
+            data = data[data['Actual @AOPQuantity sold'] > 0]
+        else:
+            st.error("The required columns are not present in the uploaded file.")
+            st.write("Available Columns:", data.columns)
         data['Period'] = data['Period'].astype(str).str.zfill(2)
         data['Date'] = pd.to_datetime(data['Year'].astype(str) + '-' + data['Period'] + '-01')
         data['Average Price'] = data['Actual @AOPNet Trade Sales'] / data['Actual @AOPQuantity sold']
