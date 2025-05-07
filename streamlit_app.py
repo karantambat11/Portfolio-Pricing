@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
+import altair as alt
 
 st.title("Sales and Profitability Analysis")
 st.markdown("This app helps in analyzing SKU-level performance with focus on pricing and profitability.")
@@ -39,14 +38,11 @@ if uploaded_file:
 
         # Time Series Plot
         st.subheader("Time-Series Trends for Selected Sub Group")
-        plt.figure(figsize=(10, 5))
-        sns.lineplot(data=filtered_data, x='Date', y='Average Price', marker='o', label='Average Price')
-        sns.lineplot(data=filtered_data, x='Date', y='Gross Margin (%)', marker='x', label='Gross Margin (%)')
-        plt.title(f"Price and GM Trend for {subcategory}")
-        plt.xlabel("Date")
-        plt.ylabel("Values")
-        plt.legend()
-        st.pyplot(plt)
+        chart = alt.Chart(filtered_data).mark_line(point=True).encode(x='Date', y=alt.Y('Average Price', title='Average Price'), color=alt.value('blue')).properties(title=f'Average Price Trend for {subcategory}')
+st.altair_chart(chart, use_container_width=True)
+
+chart_gm = alt.Chart(filtered_data).mark_line(point=True).encode(x='Date', y=alt.Y('Gross Margin (%)', title='Gross Margin (%)'), color=alt.value('red')).properties(title=f'Gross Margin Trend for {subcategory}')
+st.altair_chart(chart_gm, use_container_width=True)
 
         # Top and Bottom SKUs
         st.subheader("Top and Bottom SKUs by Gross Margin")
@@ -59,4 +55,3 @@ if uploaded_file:
 
     except Exception as e:
         st.error(f"Error processing file: {e}")
-
