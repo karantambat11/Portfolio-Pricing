@@ -36,27 +36,26 @@ if uploaded_file:
 
             for year in unique_years:
                 year_data = sku_data[sku_data['Year'] == year]
-                unique_months = year_data['Period'].unique()
-
-                for month in unique_months:
+                for month in range(1, 13):  # Loop through all months
                     month_data = year_data[year_data['Period'] == month]
-                    # Sum the required values
-                    sum_net_sales = month_data['Actual @AOPNet Trade Sales'].sum()
-                    sum_gross_profit = month_data['Actual @AOPStandard Gross Profit'].sum()
-                    sum_quantity_sold = month_data['Actual @AOPQuantity sold'].sum()
-                    sum_net_weight = month_data['Actual @AOPNet Weight'].sum()
+                    if not month_data.empty:
+                        # Sum the required values
+                        sum_net_sales = month_data['Actual @AOPNet Trade Sales'].sum()
+                        sum_gross_profit = month_data['Actual @AOPStandard Gross Profit'].sum()
+                        sum_quantity_sold = month_data['Actual @AOPQuantity sold'].sum()
+                        sum_net_weight = month_data['Actual @AOPNet Weight'].sum()
 
-                    # Append the aggregated data to the final DataFrame
-                    final_df = final_df.append({
-                        'SKU Name': sku,
-                        'Product Sub Group': product_sub_group,
-                        'Year': year,
-                        'Month': month,
-                        'Sum of Actual @AOPNet Trade Sales': sum_net_sales,
-                        'Sum of Actual @AOPStandard Gross Profit': sum_gross_profit,
-                        'Sum of Actual @AOPQuantity sold': sum_quantity_sold,
-                        'Sum of Actual @AOPNet Weight': sum_net_weight
-                    }, ignore_index=True)
+                        # Append the aggregated data to the final DataFrame
+                        final_df = final_df.append({
+                            'SKU Name': sku,
+                            'Product Sub Group': product_sub_group,
+                            'Year': year,
+                            'Month': month,
+                            'Sum of Actual @AOPNet Trade Sales': sum_net_sales,
+                            'Sum of Actual @AOPStandard Gross Profit': sum_gross_profit,
+                            'Sum of Actual @AOPQuantity sold': sum_quantity_sold,
+                            'Sum of Actual @AOPNet Weight': sum_net_weight
+                        }, ignore_index=True)
 
         # Display the final structured data
         st.subheader("Restructured Data by SKU Name")
