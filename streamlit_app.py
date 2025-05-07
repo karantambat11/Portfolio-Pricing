@@ -18,12 +18,21 @@ if uploaded_file:
         # Standardize column names
         data.columns = data.columns.map(str).str.strip()
 
-        # Extract unique SKU names
-        unique_skus = data['SKU Name'].unique()
-        st.write("Unique SKUs:", unique_skus)
+        # Check for necessary columns
+        required_columns = [
+            'SKU Name', 'Product Sub Group', 'Year', 'Period',
+            'Actual @AOPNet Trade Sales', 'Actual @AOPStandard Gross Profit',
+            'Actual @AOPQuantity sold', 'Actual @AOPNet Weight'
+        ]
+        if not all(col in data.columns for col in required_columns):
+            st.error("The uploaded file does not contain the required columns.")
+            st.stop()
 
-        # Initialize the list outside the loops to store all rows
+        # Initialize the list to store the rows
         rows = []
+
+        # Get unique SKU Names
+        unique_skus = data['SKU Name'].unique()
 
         # Loop through each SKU Name
         for sku in unique_skus:
@@ -31,37 +40,37 @@ if uploaded_file:
             product_sub_group = sku_data['Product Sub Group'].iloc[0] if not sku_data.empty else 'Unknown'
             unique_years = sku_data['Year'].unique()
 
-            # Loop through each Year for the SKU
+            # Loop through each Year
             for year in unique_years:
                 year_data = sku_data[sku_data['Year'] == year]
-                unique_months = year_data['Period'].unique()
+                unique_months = sorted(year_data['Period'].unique())
 
-                # Loop through each Month within the Year
+                # Loop through each Month available for the year
                 for month in unique_months:
                     month_data = year_data[year_data['Period'] == month]
-                    if not month_data.empty:
-                        # Sum the required values
-                        sum_net_sales = month_data['Actual @AOPNet Trade Sales'].sum()
-                        sum_gross_profit = month_data['Actual @AOPStandard Gross Profit'].sum()
-                        sum_quantity_sold = month_data['Actual @AOPQuantity sold'].sum()
-                        sum_net_weight = month_data['Actual @AOPNet Weight'].sum()
 
-                        # Append the aggregated row to the list
-                        rows.append({
-                            'SKU Name': sku,
-                            'Product Sub Group': product_sub_group,
-                            'Year': year,
-                            'Month': month,
-                            'Sum of Actual @AOPNet Trade Sales': sum_net_sales,
-                            'Sum of Actual @AOPStandard Gross Profit': sum_gross_profit,
-                            'Sum of Actual @AOPQuantity sold': sum_quantity_sold,
-                            'Sum of Actual @AOPNet Weight': sum_net_weight
-                        })
+                    # Sum the required values
+                    sum_net_sales = month_data['Actual @AOPNet Trade Sales'].sum()
+                    sum_gross_profit = month_data['Actual @AOPStandard Gross Profit'].sum()
+                    sum_quantity_sold = month_data['Actual @AOPQuantity sold'].sum()
+                    sum_net_weight = month_data['Actual @AOPNet Weight'].sum()
 
-        # Convert the list of rows into a DataFrame
+                    # Append the aggregated row to the list
+                    rows.append({
+                        'SKU Name': sku,
+                        'Product Sub Group': product_sub_group,
+                        'Year': year,
+                        'Month': month,
+                        'Sum of Actual @AOPNet Trade Sales': sum_net_sales,
+                        'Sum of Actual @AOPStandard Gross Profit': sum_gross_profit,
+                        'Sum of Actual @AOPQuantity sold': sum_quantity_sold,
+                        'Sum of Actual @AOPNet Weight': sum_net_weight
+                    })
+
+        # Convert the list to a DataFrame
         final_df = pd.DataFrame(rows)
 
-        # Display the final structured data
+        # Display the structured data
         st.subheader("Restructured Data by SKU Name")
         st.write(final_df.head(20))
 
