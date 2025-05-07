@@ -1,9 +1,8 @@
 import streamlit as st
 import pandas as pd
-import altair as alt
 
-st.title("Sales and Profitability Analysis")
-st.markdown("This app helps in analyzing SKU-level performance with focus on pricing and profitability.")
+st.title("Data Restructuring for Subcategories")
+st.markdown("Upload your Excel file to organize data by subcategories.")
 
 # Step 1: Upload Excel file
 uploaded_file = st.file_uploader("Upload Excel file", type=["xlsx"])
@@ -16,55 +15,37 @@ if uploaded_file:
         selected_sheet = st.selectbox("Select the sheet to analyze", sheet_names)
         data = excel_data.parse(selected_sheet)
 
-        # Display the raw data
-        st.subheader("Raw Data Preview")
-        st.write(data.head())
-
-                # Data Cleaning and Calculation
+        # Standardize column names
         data.columns = data.columns.map(str).str.strip()
-        
-        # Check for required columns
-        required_columns = ['Actual @AOPNet Trade Sales', 'Actual @AOPQuantity sold']
-        if all(col in data.columns for col in required_columns):
-            # Data Cleaning and Calculation
-            data = data.dropna(subset=required_columns)
-            data = data[data['Actual @AOPQuantity sold'] > 0]
-        else:
-            st.error("The required columns are not present in the uploaded file.")
-            st.write("Available Columns:", data.columns)
-        data['Period'] = data['Period'].astype(str).str.zfill(2)
-        data['Date'] = pd.to_datetime(data['Year'].astype(str) + '-' + data['Period'] + '-01')
-        data['Average Price'] = data['Actual @AOPNet Trade Sales'] / data['Actual @AOPQuantity sold']
-        data['Gross Margin (%)'] = (data['Actual @AOPStandard Gross Profit'] / data['Actual @AOPNet Trade Sales']) * 100
 
-        # Display processed data
-        st.subheader("Processed Data with Key Metrics")
-        st.write(data.head())
+        # Extract unique subcategories
+        subcategories = data['Product Sub Group'].unique()
+        st.write("Unique Subcategories:", subcategories)
 
-        # Data Exploration
-        subcategory = st.selectbox("Select Product Sub Group", data['Product Sub Group'].unique())
-        filtered_data = data[data['Product Sub Group'] == subcategory]
+        # Dictionary to store aggregated data per subcategory
+        aggregated_data = {}
 
-        # Time Series Plot
-        st.subheader("Time-Series Trends for Selected Sub Group")
-        chart = alt.Chart(filtered_data).mark_line(point=True).encode(x='Date', y=alt.Y('Average Price', title='Average Price'), color=alt.value('blue')).properties(title=f'Average Price Trend for {subcategory}')
-        st.altair_chart(chart, use_container_width=True)
+        for subcategory in subcategories:
+            subcategory_data = data[data['Product Sub Group'] == subcategory]
+            # Group and aggregate
+            grouped = subcategory_data.groupby(['Year', 'Period', 'Material']).agg({
+                'Actual @AOPNet Trade Sales': 'sum',
+                'Actual @AOPStandard Gross Profit': 'sum',
+                'Actual @AOPQuantity sold': 'sum',
+                'Actual @AOPNet Weight': 'sum'
+            }).reset_index()
+            # Rename 'Period' to 'Month'
+            grouped = grouped.rename(columns={'Period': 'Month'})
+            # Save to dictionary
+            aggregated_data[subcategory] = grouped
 
-        chart_gm = alt.Chart(filtered_data).mark_line(point=True).encode(
-            x='Date', 
-            y=alt.Y('Gross Margin (%)', title='Gross Margin (%)'), 
-            color=alt.value('red')
-        ).properties(title=f'Gross Margin Trend for {subcategory}')
-        st.altair_chart(chart_gm, use_container_width=True)
+        # Display the first few rows of each subcategory
+        st.subheader("Aggregated Data Preview")
+        for subcategory, df in aggregated_data.items():
+            st.write(f"Subcategory: {subcategory}")
+            st.write(df.head())
 
-        # Top and Bottom SKUs
-        st.subheader("Top and Bottom SKUs by Gross Margin")
-        top_skus = filtered_data.nlargest(5, 'Gross Margin (%)')
-        bottom_skus = filtered_data.nsmallest(5, 'Gross Margin (%)')
-        st.write("Top 5 SKUs:")
-        st.write(top_skus[['Material', 'Description', 'Average Price', 'Gross Margin (%)']])
-        st.write("Bottom 5 SKUs:")
-        st.write(bottom_skus[['Material', 'Description', 'Average Price', 'Gross Margin (%)']])
+        st.success("Data restructuring completed successfully!")
 
     except Exception as e:
         st.error(f"Error processing file: {e}")
