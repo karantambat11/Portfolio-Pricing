@@ -21,7 +21,7 @@ if uploaded_file:
         st.write(data.head())
 
                 # Data Cleaning and Calculation
-        data.columns = data.columns.str.strip()
+        data.columns = data.columns.map(str).str.strip()
         
         # Check for required columns
         required_columns = ['Actual @AOPNet Trade Sales', 'Actual @AOPQuantity sold']
