@@ -46,7 +46,8 @@ if uploaded_file:
                         sum_net_weight = month_data['Actual @AOPNet Weight'].sum()
 
                         # Append the aggregated data to the final DataFrame
-                        final_df = final_df.append({
+                        # Create a temporary DataFrame for the current row
+                        row = pd.DataFrame([{
                             'SKU Name': sku,
                             'Product Sub Group': product_sub_group,
                             'Year': year,
@@ -55,7 +56,11 @@ if uploaded_file:
                             'Sum of Actual @AOPStandard Gross Profit': sum_gross_profit,
                             'Sum of Actual @AOPQuantity sold': sum_quantity_sold,
                             'Sum of Actual @AOPNet Weight': sum_net_weight
-                        }, ignore_index=True)
+                        }])
+                        
+                        # Concatenate the new row to the final DataFrame
+                        final_df = pd.concat([final_df, row], ignore_index=True)
+
 
         # Display the final structured data
         st.subheader("Restructured Data by SKU Name")
