@@ -64,9 +64,7 @@ if uploaded_file:
                         sum_quantity_sold = month_data['Actual @AOPQuantity sold'].sum()
                         sum_net_weight = month_data['Actual @AOPNet Weight'].sum()
 
-                        # Append the aggregated data to the final DataFrame
-                        # Create a temporary DataFrame for the current row
-                        # Create a list to store rows
+# Initialize the list outside the loops to store all rows
                         rows = []
                         
                         for sku in unique_skus:
@@ -76,7 +74,9 @@ if uploaded_file:
                         
                             for year in unique_years:
                                 year_data = sku_data[sku_data['Year'] == year]
-                                for month in range(1, 13):  # Loop through all months (1 to 12)
+                                unique_months = year_data['Period'].unique()
+                        
+                                for month in unique_months:  # Loop through only available months
                                     month_data = year_data[year_data['Period'] == month]
                                     if not month_data.empty:
                                         # Sum the required values
@@ -96,6 +96,14 @@ if uploaded_file:
                                             'Sum of Actual @AOPQuantity sold': sum_quantity_sold,
                                             'Sum of Actual @AOPNet Weight': sum_net_weight
                                         })
+                        
+                        # Convert the list of rows into a DataFrame
+                        final_df = pd.DataFrame(rows)
+                        
+                        # Display the final structured data
+                        st.subheader("Restructured Data by SKU Name")
+                        st.write(final_df.head(20))
+
                         
                         # Convert the list of rows into a DataFrame
                         final_df = pd.DataFrame(rows)
