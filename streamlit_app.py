@@ -39,10 +39,14 @@ if uploaded_file:
         # Time Series Plot
         st.subheader("Time-Series Trends for Selected Sub Group")
         chart = alt.Chart(filtered_data).mark_line(point=True).encode(x='Date', y=alt.Y('Average Price', title='Average Price'), color=alt.value('blue')).properties(title=f'Average Price Trend for {subcategory}')
-st.altair_chart(chart, use_container_width=True)
+        st.altair_chart(chart, use_container_width=True)
 
-chart_gm = alt.Chart(filtered_data).mark_line(point=True).encode(x='Date', y=alt.Y('Gross Margin (%)', title='Gross Margin (%)'), color=alt.value('red')).properties(title=f'Gross Margin Trend for {subcategory}')
-st.altair_chart(chart_gm, use_container_width=True)
+            chart_gm = alt.Chart(filtered_data).mark_line(point=True).encode(
+                x='Date', 
+                y=alt.Y('Gross Margin (%)', title='Gross Margin (%)'), 
+                color=alt.value('red')
+            ).properties(title=f'Gross Margin Trend for {subcategory}')
+            st.altair_chart(chart_gm, use_container_width=True)
 
         # Top and Bottom SKUs
         st.subheader("Top and Bottom SKUs by Gross Margin")
