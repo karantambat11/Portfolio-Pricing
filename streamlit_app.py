@@ -38,9 +38,9 @@ if uploaded_file:
         for sku in unique_skus:
             sku_data = data[data['SKU Name'] == sku]
             product_sub_group = sku_data['Product Sub Group'].iloc[0] if not sku_data.empty else 'Unknown'
-            unique_years = sku_data['Year'].unique()
+            unique_years = sorted(sku_data['Year'].unique())
 
-            # Loop through each Year
+            # Loop through each Year for the SKU
             for year in unique_years:
                 year_data = sku_data[sku_data['Year'] == year]
                 unique_months = sorted(year_data['Period'].unique())
@@ -49,23 +49,25 @@ if uploaded_file:
                 for month in unique_months:
                     month_data = year_data[year_data['Period'] == month]
 
-                    # Sum the required values
-                    sum_net_sales = month_data['Actual @AOPNet Trade Sales'].sum()
-                    sum_gross_profit = month_data['Actual @AOPStandard Gross Profit'].sum()
-                    sum_quantity_sold = month_data['Actual @AOPQuantity sold'].sum()
-                    sum_net_weight = month_data['Actual @AOPNet Weight'].sum()
+                    # Ensure the month data is valid
+                    if not month_data.empty:
+                        # Sum the required values
+                        sum_net_sales = month_data['Actual @AOPNet Trade Sales'].sum()
+                        sum_gross_profit = month_data['Actual @AOPStandard Gross Profit'].sum()
+                        sum_quantity_sold = month_data['Actual @AOPQuantity sold'].sum()
+                        sum_net_weight = month_data['Actual @AOPNet Weight'].sum()
 
-                    # Append the aggregated row to the list
-                    rows.append({
-                        'SKU Name': sku,
-                        'Product Sub Group': product_sub_group,
-                        'Year': year,
-                        'Month': month,
-                        'Sum of Actual @AOPNet Trade Sales': sum_net_sales,
-                        'Sum of Actual @AOPStandard Gross Profit': sum_gross_profit,
-                        'Sum of Actual @AOPQuantity sold': sum_quantity_sold,
-                        'Sum of Actual @AOPNet Weight': sum_net_weight
-                    })
+                        # Append the aggregated row to the list
+                        rows.append({
+                            'SKU Name': sku,
+                            'Product Sub Group': product_sub_group,
+                            'Year': int(year),    # Ensure year is integer
+                            'Month': int(month),  # Ensure month is integer
+                            'Sum of Actual @AOPNet Trade Sales': sum_net_sales,
+                            'Sum of Actual @AOPStandard Gross Profit': sum_gross_profit,
+                            'Sum of Actual @AOPQuantity sold': sum_quantity_sold,
+                            'Sum of Actual @AOPNet Weight': sum_net_weight
+                        })
 
         # Convert the list to a DataFrame
         final_df = pd.DataFrame(rows)
