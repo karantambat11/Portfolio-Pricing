@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 st.title("Data Restructuring for Subcategories")
-st.markdown("Upload your Excel file to organize data by subcategories.")
+st.markdown("Upload your Excel file to organize data by subcategories, correctly grouped by Year, Month, and SKU.")
 
 # Step 1: Upload Excel file
 uploaded_file = st.file_uploader("Upload Excel file", type=["xlsx"])
@@ -27,7 +27,7 @@ if uploaded_file:
 
         for subcategory in subcategories:
             subcategory_data = data[data['Product Sub Group'] == subcategory]
-            # Group and aggregate
+            # Group and aggregate by Year, Month, SKU
             grouped = subcategory_data.groupby(['Year', 'Period', 'Material']).agg({
                 'Actual @AOPNet Trade Sales': 'sum',
                 'Actual @AOPStandard Gross Profit': 'sum',
@@ -36,6 +36,8 @@ if uploaded_file:
             }).reset_index()
             # Rename 'Period' to 'Month'
             grouped = grouped.rename(columns={'Period': 'Month'})
+            # Sort by Year, Month, SKU
+            grouped = grouped.sort_values(by=['Year', 'Month', 'Material'])
             # Save to dictionary
             aggregated_data[subcategory] = grouped
 
